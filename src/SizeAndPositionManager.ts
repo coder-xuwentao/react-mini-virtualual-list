@@ -31,10 +31,10 @@ export default class SizeAndPositionManager {
     this.itemCount = itemCount;
     this.estimatedItemSize = estimatedItemSize;
 
-    // Cache of size and position data for items, mapped by item index.
+    // 缓存，值为位置和大小，key是index
     this.itemSizeAndPositionData = {};
 
-    // Measurements for items up to this index can be trusted; items afterward should be estimated.
+    // 测量过的最后一个item（index），后面都是没测量的，可能需要预估
     this.lastMeasuredIndex = -1;
   }
 
@@ -61,8 +61,9 @@ export default class SizeAndPositionManager {
   }
 
   /**
-   * This method returns the size and position for the item at the specified index.
-   * It just-in-time calculates (or used cached values) for items leading up to the index.
+   * 根据index,返回offset和size
+   * 若index > lastMeasuredIndex，则说明没有缓存，需计算
+   * 反之，从缓存中读取数据
    */
   getSizeAndPositionForIndex(index: number) {
     if (index < 0 || index >= this.itemCount) {
@@ -97,6 +98,7 @@ export default class SizeAndPositionManager {
     return this.itemSizeAndPositionData[index];
   }
 
+  // 获取lastMeasuredIndex的offset和size
   getSizeAndPositionOfLastMeasuredItem() {
     return this.lastMeasuredIndex >= 0
       ? this.itemSizeAndPositionData[this.lastMeasuredIndex]
@@ -104,9 +106,7 @@ export default class SizeAndPositionManager {
   }
 
   /**
-   * Total size of all items being measured.
-   * This value will be completedly estimated initially.
-   * As items as measured the estimate will be updated.
+   * 获取总size：测量过的size + 预测的size
    */
   getTotalSize(): number {
     const lastMeasuredSizeAndPosition = this.getSizeAndPositionOfLastMeasuredItem();
@@ -119,11 +119,11 @@ export default class SizeAndPositionManager {
   }
 
   /**
-   * Determines a new offset that ensures a certain item is visible, given the alignment.
+   * 获取一个offset - 用来确保item scroll到窗口中
    *
-   * @param align Desired alignment within container; one of "start" (default), "center", or "end"
-   * @param containerSize Size (width or height) of the container viewport
-   * @return Offset to use to ensure the specified item is visible
+   * @param align item在窗口中的位置，eg: "start" (default), "center", or "end"
+   * @param containerSize 窗口大小
+   * @return Offset
    */
   getUpdatedOffsetForIndex({
     align = ALIGNMENT.START,
@@ -166,6 +166,7 @@ export default class SizeAndPositionManager {
     return Math.max(0, Math.min(totalSize - containerSize, idealOffset));
   }
 
+  // 获取可视窗口返回开端，末尾两个item的索引（包括了缓冲部分）
   getVisibleRange({
     containerSize,
     offset,
@@ -210,43 +211,36 @@ export default class SizeAndPositionManager {
   }
 
   /**
-   * Clear all cached values for items after the specified index.
-   * This method should be called for any item that has changed its size.
-   * It will not immediately perform any calculations; they'll be performed the next time getSizeAndPositionForIndex() is called.
+   * 清空指定item之后的测量值缓存
+   * 下次调用getSizeAndPositionForIndex时，缓存的高度就只剩下这个了
    */
   resetItem(index: number) {
     this.lastMeasuredIndex = Math.min(this.lastMeasuredIndex, index - 1);
   }
 
   /**
-   * Searches for the item (index) nearest the specified offset.
-   *
-   * If no exact match is found the next lowest item index will be returned.
-   * This allows partially visible items (with offsets just before/above the fold) to be visible.
+   * 通过offset查找最近的item(index)
+   * 找不到就返回最低offset的item
    */
   findNearestItem(offset: number) {
     if (isNaN(offset)) {
       throw Error(`Invalid offset ${offset} specified`);
     }
 
-    // Our search algorithms find the nearest match at or below the specified offset.
-    // So make sure the offset is at least 0 or no match will be found.
     offset = Math.max(0, offset);
 
     const lastMeasuredSizeAndPosition = this.getSizeAndPositionOfLastMeasuredItem();
     const lastMeasuredIndex = Math.max(0, this.lastMeasuredIndex);
 
     if (lastMeasuredSizeAndPosition.offset >= offset) {
-      // If we've already measured items within this range just use a binary search as it's faster.
+      // 在已测量的items中，直接二分查找。
       return this.binarySearch({
         high: lastMeasuredIndex,
         low: 0,
         offset,
       });
     } else {
-      // If we haven't yet measured this high, fallback to an exponential search with an inner binary search.
-      // The exponential search avoids pre-computing sizes for the full set of items as a binary search would.
-      // The overall complexity for this approach is O(log n).
+      // 有些还没测量，就先指数搜索-继续测量items直到测量值比offset大，再二分搜索
       return this.exponentialSearch({
         index: lastMeasuredIndex,
         offset,
