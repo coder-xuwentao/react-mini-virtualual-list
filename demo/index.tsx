@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 
-import VirtualList, {ItemStyle} from '../src/VariableSizeList';
-import { DIRECTION } from '../src/constants';
+import  VariableSizeList, { DIRECTION } from '../src';
+import type { ItemStyle } from '../src';
 import './index.css';
 
 const EXAMPLE = () => {
@@ -14,13 +14,12 @@ const EXAMPLE = () => {
   };
 
   const getItemSize = (_: number) => {
-    console.log('tao', _)
     return (Math.random() * 50) + 50
   }
   
   return (
     <div className="Root">
-      <VirtualList
+      <VariableSizeList
         width={800}
         height={400}
         itemCount={100}
@@ -35,5 +34,5 @@ const EXAMPLE = () => {
 }
 
 const container = document.getElementById('root');
-const root = createRoot(container!); // createRoot(container!) if you use TypeScript
+const root = createRoot(container!);
 root.render(<EXAMPLE />);

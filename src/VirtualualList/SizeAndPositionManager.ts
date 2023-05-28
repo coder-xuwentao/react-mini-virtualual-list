@@ -66,6 +66,7 @@ export default class SizeAndPositionManager {
    * 反之，从缓存中读取数据
    */
   getSizeAndPositionForIndex(index: number) {
+
     if (index < 0 || index >= this.itemCount) {
       throw Error(
         `Requested index ${index} is outside of range 0..${this.itemCount}`,
@@ -94,7 +95,6 @@ export default class SizeAndPositionManager {
 
       this.lastMeasuredIndex = index;
     }
-
     return this.itemSizeAndPositionData[index];
   }
 
