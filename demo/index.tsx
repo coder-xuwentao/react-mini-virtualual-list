@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 
-import  VariableSizeList, { DIRECTION } from '../src';
+import  VirtualList, { DIRECTION } from '../src';
 import type { ItemStyle } from '../src';
 import './index.css';
 
@@ -19,7 +19,7 @@ const EXAMPLE = () => {
   
   return (
     <div className="Root">
-      <VariableSizeList
+      <VirtualList
         width={800}
         height={400}
         itemCount={100}

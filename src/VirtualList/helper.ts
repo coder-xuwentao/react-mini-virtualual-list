@@ -1,4 +1,4 @@
-import type { ItemSize, SizeAndPosition } from './SizeAndPositionManager'
+import type { ItemSize, SizeAndPosition } from './size-and-position-manager'
 import { DIRECTION, sizeProp, positionProp } from './constants'
 import { ItemStyle } from './interface'
 

@@ -1,7 +1,5 @@
-import VirtualualList from './VirtualualList'
-import type { ItemStyle } from './VirtualualList/interface'
+import type { ItemStyle } from './VirtualList/interface'
 
-export * from './VirtualualList/constants'
+export * from './VirtualList/constants'
+export { default } from './VirtualList'
 export { ItemStyle }
-
-export default VirtualualList;

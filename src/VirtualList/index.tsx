@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react'
-import SizeAndPositionManager, { ItemSize } from './SizeAndPositionManager';
+import SizeAndPositionManager, { ItemSize } from './size-and-position-manager';
 import { itemSizeGetter, getEstimatedItemSize, StyleCache } from './helper'
 import { ItemStyle } from './interface'
 import {
